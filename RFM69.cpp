@@ -25,7 +25,7 @@
 // **********************************************************************************
 #include "RFM69.h"
 #include "RFM69registers.h"
-#include <SPI.h>
+#include "STM32/SPI.h"
 
 uint8_t RFM69::DATA[RF69_MAX_DATA_LEN+1];
 uint8_t RFM69::_mode;        // current transceiver state
@@ -38,7 +38,11 @@ uint8_t RFM69::ACK_RECEIVED; // should be polled immediately after sending a pac
 int16_t RFM69::RSSI;          // most accurate RSSI during reception (closest to the reception)
 volatile bool RFM69::_haveData;
 
+#ifdef STM32IDE
+RFM69::RFM69(struct gpio_pin &slaveSelectPin, struct gpio_pin &interruptPin, bool isRFM69HW, SPIClass *spi)
+#else
 RFM69::RFM69(uint8_t slaveSelectPin, uint8_t interruptPin, bool isRFM69HW, SPIClass *spi)
+#endif
 {
   _slaveSelectPin = slaveSelectPin;
   _interruptPin = interruptPin;
@@ -58,8 +62,10 @@ RFM69::RFM69(uint8_t slaveSelectPin, uint8_t interruptPin, bool isRFM69HW, SPICl
 
 bool RFM69::initialize(uint8_t freqBand, uint16_t nodeID, uint8_t networkID)
 {
+#ifndef STM32IDE
   _interruptNum = digitalPinToInterrupt(_interruptPin);
   if (_interruptNum == (uint8_t)NOT_AN_INTERRUPT) return false;
+#endif
 #ifdef RF69_ATTACHINTERRUPT_TAKES_PIN_NUMBER
     _interruptNum = _interruptPin;
 #endif
@@ -543,16 +549,26 @@ void RFM69::setHighPowerRegs(bool onOff) {
 }
 
 // set the slave select (CS) pin 
+#ifdef STM32IDE
+void RFM69::setCS(struct gpio_pin newSPISlaveSelect) {
+#else
 void RFM69::setCS(uint8_t newSPISlaveSelect) {
+#endif
+
   _slaveSelectPin = newSPISlaveSelect;
   digitalWrite(_slaveSelectPin, HIGH);
   pinMode(_slaveSelectPin, OUTPUT);
 }
 
 // set the IRQ pin
+#ifdef STM32IDE
+bool RFM69::setIrq(struct gpio_pin newIRQPin) {
+	struct gpio_pin _newInterruptNum = newIRQPin;
+#else
 bool RFM69::setIrq(uint8_t newIRQPin) {
   uint8_t _newInterruptNum = digitalPinToInterrupt(newIRQPin);
   if (_newInterruptNum == (uint8_t)NOT_AN_INTERRUPT) return false;
+#endif
 #ifdef RF69_ATTACHINTERRUPT_TAKES_PIN_NUMBER
   _newInterruptNum = newIRQPin;
 #endif

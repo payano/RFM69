@@ -29,7 +29,7 @@
 #include "RFM69_ATC.h"
 #include "RFM69.h"   // include the RFM69 library files as well
 #include "RFM69registers.h"
-#include <SPI.h>
+#include "STM32/SPI.h"
 
 volatile uint8_t RFM69_ATC::ACK_RSSI_REQUESTED;  // new type of flag on ACK_REQUEST
 

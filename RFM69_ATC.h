@@ -36,9 +36,15 @@ class RFM69_ATC: public RFM69 {
   public:
     static volatile uint8_t ACK_RSSI_REQUESTED;  // new flag in CTL byte to request RSSI with ACK (could potentially be merged with ACK_REQUESTED)
 
+#ifdef STM32IDE
+    RFM69_ATC(struct gpio_pin slaveSelectPin, struct gpio_pin interruptPin, bool isRFM69HW=false, SPIClass *spi=nullptr) :
+      RFM69(slaveSelectPin, interruptPin, isRFM69HW, spi) {
+    }
+#else
     RFM69_ATC(uint8_t slaveSelectPin=RF69_SPI_CS, uint8_t interruptPin=RF69_IRQ_PIN, bool isRFM69HW=false, SPIClass *spi=nullptr) :
       RFM69(slaveSelectPin, interruptPin, isRFM69HW, spi) {
     }
+#endif
 
     bool initialize(uint8_t freqBand, uint16_t ID, uint8_t networkID=1);
     void sendACK(const void* buffer = "", uint8_t bufferSize=0);

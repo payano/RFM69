@@ -121,7 +121,11 @@ uint8_t HandleWirelessHEXDataWrapper(RFM69& radio, uint16_t remoteID, SPIFlash& 
 // HandleWirelessHEXData() - ACKs the wireless programming handshake and handles
 // the complete transmission of the HEX image at the OTA programmed node side
 //===================================================================================================================
-uint8_t HandleWirelessHEXData(RFM69& radio, uint16_t remoteID, SPIFlash& flash, uint8_t DEBUG, uint8_t LEDpin) {
+#ifdef STM32IDE
+uint8_t HandleWirelessHEXData(RFM69& radio, uint16_t remoteID, SPIFlash& flash, uint8_t DEBUG, struct gpio_pin LEDpin) {
+#else
+	uint8_t HandleWirelessHEXData(RFM69& radio, uint16_t remoteID, SPIFlash& flash, uint8_t DEBUG, uint8_t LEDpin) {
+#endif
   uint32_t now=0;
   uint16_t tmp,seq=0;
   char buffer[16];

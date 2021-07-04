@@ -25,8 +25,13 @@
 // **********************************************************************************
 #ifndef RFM69_h
 #define RFM69_h
-#include <Arduino.h>            // assumes Arduino IDE v1.0 or greater
-#include <SPI.h>
+
+#define MCU_STM32F103RE
+#include "STM32/STM32.h"
+//#include <Arduino.h>            // assumes Arduino IDE v1.0 or greater
+#include "STM32/SPI.h"
+
+extern SerialDebug Serial;
 
 //////////////////////////////////////////////////////////////////////
 //Platform and digitalPinToInterrupt definitions credit to RadioHead//
@@ -195,10 +200,16 @@ class RFM69 {
     static int16_t RSSI; // most accurate RSSI during reception (closest to the reception). RSSI of last packet.
     static uint8_t _mode; // should be protected?
 
+#ifdef STM32IDE
+    RFM69(struct gpio_pin &slaveSelectPin, struct gpio_pin &interruptPin, bool isRFM69HW, struct gpio_pin &interruptNum __attribute__((unused))) //interruptNum is now deprecated
+                : RFM69(slaveSelectPin, interruptPin, isRFM69HW){};
+    RFM69(struct gpio_pin &slaveSelectPin, struct gpio_pin &interruptPin, bool isRFM69HW=false, SPIClass *spi=nullptr);
+
+#else
     RFM69(uint8_t slaveSelectPin, uint8_t interruptPin, bool isRFM69HW, uint8_t interruptNum __attribute__((unused))) //interruptNum is now deprecated
                 : RFM69(slaveSelectPin, interruptPin, isRFM69HW){};
-
     RFM69(uint8_t slaveSelectPin=RF69_SPI_CS, uint8_t interruptPin=RF69_IRQ_PIN, bool isRFM69HW=false, SPIClass *spi=nullptr);
+    #endif
 
     bool initialize(uint8_t freqBand, uint16_t ID, uint8_t networkID=1);
     void setAddress(uint16_t addr);
@@ -213,8 +224,17 @@ class RFM69 {
     uint32_t getFrequency();
     void setFrequency(uint32_t freqHz);
     void encrypt(const char* key);
+#ifdef STM32IDE
+    void setCS(struct gpio_pin newSPISlaveSelect);
+#else
     void setCS(uint8_t newSPISlaveSelect);
+#endif
+
+#ifdef STM32IDE
+    bool setIrq(struct gpio_pin newIRQPin);
+#else
     bool setIrq(uint8_t newIRQPin);
+#endif
     int16_t readRSSI(bool forceTrigger=false); // *current* signal strength indicator; e.g. < -90dBm says the frequency channel is free + ready to transmit
     void spyMode(bool onOff=true);
     //void promiscuous(bool onOff=true); //replaced with spyMode()
@@ -245,9 +265,15 @@ class RFM69 {
     // for ListenMode sleep/timer
     static void delayIrq();
    
+#ifdef STM32IDE
+    struct gpio_pin _slaveSelectPin;
+    struct gpio_pin _interruptPin;
+    struct gpio_pin _interruptNum;
+#else
     uint8_t _slaveSelectPin;
     uint8_t _interruptPin;
     uint8_t _interruptNum;
+#endif
     uint16_t _address;
     bool _spyMode;
     uint8_t _powerLevel;

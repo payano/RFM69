@@ -35,7 +35,7 @@
 #define RFM69_OTA_H
 
 #include "RFM69.h"
-#include <SPIFlash.h>
+#include "STM32/SPIFlash.h"
 
 #if defined(MOTEINO_M0)
   #define LED           13 // Moteino M0
